@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Test de API - GLAM RENT</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+        .container {
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        h1, h2 {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .success {
+            background: #1a3a1a;
+            border-color: #00ff00;
+            color: #00ff00;
+        }
+        .error {
+            background: #3a1a1a;
+            border-color: #ff0000;
+            color: #ff6666;
+        }
+        .warning {
+            background: #3a3a1a;
+            border-color: #ffaa00;
+            color: #ffcc66;
+        }
+        .info {
+            background: #1a1a3a;
+            border-color: #00aaff;
+            color: #66ccff;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            color: #00ff00;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+        .loading {
+            color: #ffaa00;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .product-card {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #00ff00;
+        }
+        .product-card h4 {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .blinking {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            25%, 75% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 DIAGNÓSTICO DE API - GLAM RENT</h1>
+        <p style="color: #ffaa00;">Este test verificará por qué no aparecen los productos</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Tests Automáticos</h2>
+        <button onclick="runAllTests()">🚀 Ejecutar Todos los Tests</button>
+        <button onclick="loadProducts()">🔄 Recargar Productos</button>
+        <button onclick="clearResults()">🗑️ Limpiar Resultados</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <div class="container">
+        <h2>📦 Productos Cargados</h2>
+        <div id="productsCount"></div>
+        <div id="productsGrid" class="grid"></div>
+    </div>
+
+    <div class="container">
+        <h2>🐛 Información de Debug</h2>
+        <div id="debugInfo"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let testResults = [];
+
+        function addResult(type, title, message, details = null) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            
+            let icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'warning') icon = '⚠️';
+            if (type === 'info') icon = 'ℹ️';
+            
+            let html = `<strong>${icon} ${title}</strong><br>${message}`;
+            
+            if (details) {
+                html += `<pre>${JSON.stringify(details, null, 2)}</pre>`;
+            }
+            
+            resultDiv.innerHTML = html;
+            resultsDiv.appendChild(resultDiv);
+            
+            testResults.push({ type, title, message, details });
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('productsGrid').innerHTML = '';
+            document.getElementById('productsCount').innerHTML = '';
+            document.getElementById('debugInfo').innerHTML = '';
+            testResults = [];
+        }
+
+        async function test1_ServerHealth() {
+            addResult('info', 'Test 1: Health Check', 'Verificando que el servidor esté corriendo...');
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'ok') {
+                    addResult('success', 'Test 1: EXITOSO', 'Servidor está corriendo correctamente', data);
+                    return true;
+                } else {
+                    addResult('error', 'Test 1: FALLO', 'Servidor responde pero con error', data);
+                    return false;
+                }
+            } catch (error) {
+                addResult('error', 'Test 1: ERROR', `No se puede conectar al servidor: ${error.message}. <br><strong>SOLUCIÓN: Ejecuta "python3 app.py" en la terminal</strong>`);
+                return false;
+            }
+        }
+
+        async function test2_ProductsAPI() {
+            addResult('info', 'Test 2: API de Productos', 'Consultando /api/productos...');
+            
+            try {
+                const response = await fetch(`${API_URL}/productos`);
+                
+                addResult('info', 'Respuesta recibida', `Status: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    addResult('error', 'Test 2: FALLO', `Error HTTP: ${response.status}`);
+                    return false;
+                }
+                
+                const productos = await response.json();
+                
+                if (Array.isArray(productos)) {
+                    if (productos.length > 0) {
+                        addResult('success', 'Test 2: EXITOSO', `✅ Se recibieron ${productos.length} productos correctamente`, {
+                            cantidad: productos.length,
+                            primer_producto: productos[0]
+                        });
+                        return productos;
+                    } else {
+                        addResult('warning', 'Test 2: ADVERTENCIA', 'La API responde pero no hay productos en la base de datos.<br><strong>SOLUCIÓN: Ejecuta "python3 seed_products.py"</strong>');
+                        return [];
+                    }
+                } else {
+                    addResult('error', 'Test 2: FALLO', 'La respuesta no es un array', productos);
+                    return false;
+                }
+            } catch (error) {
+                addResult('error', 'Test 2: ERROR', `Error al cargar productos: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function test3_ImagesLoad() {
+            addResult('info', 'Test 3: Carga de Imágenes', 'Verificando que las imágenes se puedan cargar...');
+            
+            const testImages = [
+                'imagenes/vestido 1.png',
+                'imagenes/CORSET 3.png'
+            ];
+            
+            let allOk = true;
+            
+            for (const imgPath of testImages) {
+                try {
+                    const response = await fetch(`http://localhost:5000/${imgPath}`);
+                    if (response.ok) {
+                        addResult('success', `Imagen OK`, `✅ ${imgPath} carga correctamente`);
+                    } else {
+                        addResult('error', `Imagen FALLO`, `❌ ${imgPath} - Error ${response.status}`);
+                        allOk = false;
+                    }
+                } catch (error) {
+                    addResult('error', `Imagen ERROR`, `❌ ${imgPath} - ${error.message}`);
+                    allOk = false;
+                }
+            }
+            
+            return allOk;
+        }
+
+        async function test4_ScriptLoaded() {
+            addResult('info', 'Test 4: Script.js', 'Verificando que script.js esté cargado...');
+            
+            if (typeof loadProducts === 'undefined') {
+                addResult('error', 'Test 4: FALLO', 'script.js NO está cargado o tiene errores');
+                return false;
+            } else {
+                addResult('success', 'Test 4: EXITOSO', 'script.js está cargado correctamente');
+                return true;
+            }
+        }
+
+        async function test5_ConsoleErrors() {
+            addResult('info', 'Test 5: Errores de Consola', 'Revisa la consola del navegador (F12) para ver si hay errores');
+            
+            // Capturar errores
+            const originalError = console.error;
+            const errors = [];
+            console.error = function(...args) {
+                errors.push(args.join(' '));
+                originalError.apply(console, args);
+            };
+            
+            if (errors.length > 0) {
+                addResult('warning', 'Test 5: ADVERTENCIA', `Se encontraron ${errors.length} errores en consola`, errors);
+            } else {
+                addResult('success', 'Test 5: EXITOSO', 'No hay errores en consola (hasta ahora)');
+            }
+        }
+
+        async function loadProducts() {
+            const productos = await test2_ProductsAPI();
+            
+            if (productos && productos.length > 0) {
+                const grid = document.getElementById('productsGrid');
+                const countDiv = document.getElementById('productsCount');
+                
+                countDiv.innerHTML = `<div class="test-result success"><strong>✅ ${productos.length} productos encontrados</strong></div>`;
+                
+                grid.innerHTML = '';
+                productos.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
+                        <img src="http://localhost:5000/${p.imagen_url}" 
+                             alt="${p.nombre}"
+                             onerror="this.style.border='2px solid red'; this.alt='Error: imagen no carga'">
+                        <h4>${p.nombre}</h4>
+                        <p style="color: #00ff00;">$${p.precio.toLocaleString()}</p>
+                        <p style="color: #ffaa00;">Stock: ${p.stock}</p>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            
+            addResult('info', 'INICIANDO DIAGNÓSTICO', 'Ejecutando todos los tests...', {
+                url_actual: window.location.href,
+                fecha: new Date().toLocaleString()
+            });
+            
+            const test1 = await test1_ServerHealth();
+            if (!test1) {
+                addResult('error', 'DIAGNÓSTICO DETENIDO', 'El servidor no está corriendo. Inicia con: python3 app.py');
+                return;
+            }
+            
+            await test2_ProductsAPI();
+            await test3_ImagesLoad();
+            await test4_ScriptLoaded();
+            await test5_ConsoleErrors();
+            
+            // Debug info
+            const debugDiv = document.getElementById('debugInfo');
+            debugDiv.innerHTML = `
+                <div class="test-result info">
+                    <strong>Información del Navegador:</strong><br>
+                    User Agent: ${navigator.userAgent}<br>
+                    URL Actual: ${window.location.href}<br>
+                    Protocolo: ${window.location.protocol}<br>
+                    <br>
+                    <strong>Archivos Cargados:</strong><br>
+                    - script.js: ${document.querySelector('script[src="script.js"]') ? '✅' : '❌'}<br>
+                    - styles.css: ${document.querySelector('link[href="styles.css"]') ? '✅' : '❌'}<br>
+                </div>
+            `;
+            
+            // Resumen final
+            const successCount = testResults.filter(r => r.type === 'success').length;
+            const errorCount = testResults.filter(r => r.type === 'error').length;
+            
+            if (errorCount === 0) {
+                addResult('success', '🎉 DIAGNÓSTICO COMPLETO', `Todos los tests pasaron (${successCount} exitosos)`);
+                addResult('info', 'Si los productos AÚN NO aparecen', 'Ve a tu index.html y verifica que script.js se esté cargando correctamente. Abre la consola (F12) y busca errores.');
+            } else {
+                addResult('error', '⚠️ DIAGNÓSTICO COMPLETO', `Se encontraron ${errorCount} problemas`);
+            }
+            
+            // Intentar cargar productos
+            await loadProducts();
+        }
+
+        // Ejecutar automáticamente al cargar
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>
