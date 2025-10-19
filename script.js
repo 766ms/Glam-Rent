@@ -738,11 +738,15 @@ async function loadAdminPanel() {
     const tabsContainer = document.getElementById('adminContent');
     tabsContainer.innerHTML = `
         <div class="admin-tabs">
-            <button class="tab-btn active" data-tab="orders" onclick="showAdminTab('orders')">Pedidos</button>
-            <button class="tab-btn" data-tab="products" onclick="showAdminTab('products')">Productos</button>
+            <button class="tab-btn active" data-tab="orders" id="tabOrders">Pedidos</button>
+            <button class="tab-btn" data-tab="products" id="tabProducts">Productos</button>
         </div>
         <div id="adminTabContent" class="admin-tab-content"></div>
     `;
+    
+    // Add event listeners to tabs
+    document.getElementById('tabOrders').addEventListener('click', () => showAdminTab('orders'));
+    document.getElementById('tabProducts').addEventListener('click', () => showAdminTab('products'));
     
     showAdminTab('orders');
 }
@@ -762,6 +766,11 @@ async function showAdminTab(tab) {
         await loadAdminProducts();
     }
 }
+
+// Make functions globally accessible
+window.showAdminTab = showAdminTab;
+window.updateProductStock = updateProductStock;
+window.updateOrderStatus = updateOrderStatus;
 
 async function loadAdminOrders() {
     try {
@@ -825,7 +834,7 @@ function renderAdminOrders(orders) {
                     </div>
                     <div>
                         <p class="order-total">${order.total.toLocaleString()} COP</p>
-                        <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
+                        <select class="status-select" data-order-id="${order.id}">
                             <option value="Pendiente" ${order.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Procesando" ${order.estado === 'Procesando' ? 'selected' : ''}>Procesando</option>
                             <option value="Enviado" ${order.estado === 'Enviado' ? 'selected' : ''}>Enviado</option>
@@ -848,6 +857,15 @@ function renderAdminOrders(orders) {
     
     html += '</div>';
     content.innerHTML = html;
+    
+    // Add event listeners to all status selects
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const orderId = this.getAttribute('data-order-id');
+            const newStatus = this.value;
+            updateOrderStatus(orderId, newStatus);
+        });
+    });
 }
 
 function renderAdminProducts(products) {
@@ -892,7 +910,7 @@ function renderAdminProducts(products) {
                     <label class="${stockClass}">Stock actual: ${product.stock}</label>
                     <div class="stock-input-group">
                         <input type="number" id="stock-${product.id}" value="${product.stock}" min="0" class="stock-input">
-                        <button onclick="updateProductStock(${product.id})" class="update-stock-btn">Actualizar</button>
+                        <button data-product-id="${product.id}" class="update-stock-btn">Actualizar</button>
                     </div>
                 </div>
             </div>
@@ -901,6 +919,14 @@ function renderAdminProducts(products) {
     
     html += '</div>';
     content.innerHTML = html;
+    
+    // Add event listeners to all update buttons
+    document.querySelectorAll('.update-stock-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            updateProductStock(productId);
+        });
+    });
 }
 
 async function updateProductStock(productId) {

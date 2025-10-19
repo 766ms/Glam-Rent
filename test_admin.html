@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Panel Admin - GLAM RENT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #F0C5CE;
+            text-align: center;
+        }
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            background: #F0C5CE;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #e8b3c0;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 20px;
+            border-left: 3px solid #F0C5CE;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test del Panel de Administración</h1>
+    
+    <div class="test-section">
+        <h2>📋 Checklist de Verificación</h2>
+        
+        <div class="step">
+            <h3>1. ¿El servidor está corriendo?</h3>
+            <div id="serverStatus" class="status info">⏳ Verificando...</div>
+            <button onclick="testServer()">🔄 Verificar Servidor</button>
+        </div>
+        
+        <div class="step">
+            <h3>2. ¿Existe el usuario admin?</h3>
+            <div id="adminStatus" class="status info">⏳ Verificando...</div>
+            <button onclick="testAdmin()">🔄 Verificar Admin</button>
+        </div>
+        
+        <div class="step">
+            <h3>3. ¿Puedes iniciar sesión?</h3>
+            <div class="status info">
+                <strong>Credenciales de Admin:</strong><br>
+                📧 Email: <code>admin@glamrent.com</code><br>
+                🔑 Contraseña: <code>admin123</code>
+            </div>
+            <button onclick="goToLogin()">➡️ Ir a Iniciar Sesión</button>
+        </div>
+        
+        <div class="step">
+            <h3>4. ¿Ves el botón "Admin"?</h3>
+            <p>Después de iniciar sesión como admin, deberías ver un botón <strong>"🔧 Admin"</strong> en la barra de navegación superior.</p>
+            <p>Si no lo ves, verifica que:</p>
+            <ul>
+                <li>Hayas iniciado sesión</li>
+                <li>Usaste las credenciales de admin correctas</li>
+                <li>El usuario tenga <code>es_admin = True</code></li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>5. ¿Funciona el panel?</h3>
+            <p>Al hacer clic en "Admin" deberías ver:</p>
+            <ul>
+                <li>✅ Modal del panel de administración</li>
+                <li>✅ Dos pestañas: "Pedidos" y "Productos"</li>
+                <li>✅ Estadísticas en cards con fondo rosa</li>
+                <li>✅ Lista de pedidos o productos según la pestaña</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔧 Solución de Problemas</h2>
+        
+        <div class="step">
+            <h3>❌ No veo el botón "Admin"</h3>
+            <p><strong>Solución:</strong></p>
+            <ol>
+                <li>Cierra sesión</li>
+                <li>Vuelve a iniciar sesión con: <code>admin@glamrent.com</code> / <code>admin123</code></li>
+                <li>El botón debería aparecer automáticamente</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>❌ El botón aparece pero no pasa nada al hacer clic</h3>
+            <p><strong>Solución:</strong></p>
+            <ol>
+                <li>Abre la consola del navegador (F12)</li>
+                <li>Ve a la pestaña "Console"</li>
+                <li>Busca errores en rojo</li>
+                <li>Recarga la página con <code>Ctrl + Shift + R</code></li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>❌ Se abre el modal pero está vacío</h3>
+            <p><strong>Solución:</strong></p>
+            <ol>
+                <li>Verifica que el servidor esté corriendo</li>
+                <li>Abre la consola (F12) y busca errores de API</li>
+                <li>Verifica que haya productos y pedidos en la base de datos</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>❌ No puedo cambiar el stock</h3>
+            <p><strong>Solución:</strong></p>
+            <ol>
+                <li>Cambia el número en el input</li>
+                <li>Haz clic en el botón "Actualizar"</li>
+                <li>Deberías ver una notificación de éxito</li>
+                <li>La página se recargará automáticamente</li>
+            </ol>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Resultados de las Pruebas</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        async function testServer() {
+            const statusDiv = document.getElementById('serverStatus');
+            statusDiv.textContent = '⏳ Probando conexión...';
+            statusDiv.className = 'status info';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    statusDiv.textContent = '✅ Servidor funcionando correctamente';
+                    statusDiv.className = 'status success';
+                    addResult('✅ Servidor está corriendo');
+                } else {
+                    statusDiv.textContent = '❌ Servidor respondió pero con error';
+                    statusDiv.className = 'status error';
+                    addResult('❌ Servidor con problemas');
+                }
+            } catch (error) {
+                statusDiv.textContent = '❌ No se puede conectar al servidor. Inicia python3 app.py';
+                statusDiv.className = 'status error';
+                addResult('❌ Servidor NO está corriendo');
+            }
+        }
+        
+        async function testAdmin() {
+            const statusDiv = document.getElementById('adminStatus');
+            statusDiv.textContent = '⏳ Verificando usuario admin...';
+            statusDiv.className = 'status info';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@glamrent.com',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.usuario.es_admin) {
+                    statusDiv.textContent = '✅ Usuario admin existe y funciona correctamente';
+                    statusDiv.className = 'status success';
+                    addResult('✅ Usuario admin configurado');
+                } else if (response.ok && !data.usuario.es_admin) {
+                    statusDiv.textContent = '⚠️ Usuario existe pero NO es admin';
+                    statusDiv.className = 'status error';
+                    addResult('❌ Usuario existe pero no es admin');
+                } else {
+                    statusDiv.textContent = '❌ No se pudo iniciar sesión: ' + data.mensaje;
+                    statusDiv.className = 'status error';
+                    addResult('❌ Error al iniciar sesión');
+                }
+            } catch (error) {
+                statusDiv.textContent = '❌ Error de conexión: ' + error.message;
+                statusDiv.className = 'status error';
+                addResult('❌ Error de conexión');
+            }
+        }
+        
+        function goToLogin() {
+            window.location.href = '/';
+        }
+        
+        function addResult(message) {
+            const results = document.getElementById('results');
+            const p = document.createElement('p');
+            p.textContent = message;
+            p.style.margin = '5px 0';
+            results.appendChild(p);
+        }
+        
+        // Run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testServer();
+                setTimeout(() => testAdmin(), 500);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
