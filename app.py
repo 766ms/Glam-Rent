@@ -577,6 +577,115 @@ def admin_actualizar_estado_pedido(usuario_actual, id):
         db.session.rollback()
         return jsonify({'mensaje': f'Error: {str(e)}'}), 500
 
+@app.route('/api/admin/productos', methods=['GET'])
+@admin_requerido
+def admin_obtener_productos(usuario_actual):
+    try:
+        productos = Producto.query.all()
+        resultado = []
+        for p in productos:
+            resultado.append({
+                'id': p.id,
+                'nombre': p.nombre,
+                'descripcion': p.descripcion,
+                'precio': p.precio,
+                'talla': p.talla,
+                'color': p.color,
+                'categoria': p.categoria,
+                'imagen_url': p.imagen_url,
+                'stock': p.stock
+            })
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/productos/<int:id>/stock', methods=['PUT'])
+@admin_requerido
+def admin_actualizar_stock(usuario_actual, id):
+    try:
+        data = request.get_json()
+        producto = Producto.query.get_or_404(id)
+        nuevo_stock = data.get('stock')
+        
+        if nuevo_stock is None or nuevo_stock < 0:
+            return jsonify({'mensaje': 'Stock debe ser un número positivo'}), 400
+        
+        producto.stock = nuevo_stock
+        db.session.commit()
+        return jsonify({'mensaje': 'Stock actualizado exitosamente'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/productos', methods=['POST'])
+@admin_requerido
+def admin_crear_producto(usuario_actual):
+    try:
+        data = request.get_json()
+        
+        if not data or not data.get('nombre') or not data.get('precio'):
+            return jsonify({'mensaje': 'Nombre y precio son requeridos'}), 400
+        
+        nuevo_producto = Producto(
+            nombre=data['nombre'],
+            descripcion=data.get('descripcion', ''),
+            precio=data['precio'],
+            talla=data.get('talla', ''),
+            color=data.get('color', ''),
+            categoria=data.get('categoria', 'vestido'),
+            imagen_url=data.get('imagen_url', ''),
+            stock=data.get('stock', 0)
+        )
+        
+        db.session.add(nuevo_producto)
+        db.session.commit()
+        return jsonify({'mensaje': 'Producto creado exitosamente', 'id': nuevo_producto.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/productos/<int:id>', methods=['PUT'])
+@admin_requerido
+def admin_actualizar_producto(usuario_actual, id):
+    try:
+        data = request.get_json()
+        producto = Producto.query.get_or_404(id)
+        
+        if data.get('nombre'):
+            producto.nombre = data['nombre']
+        if data.get('descripcion'):
+            producto.descripcion = data['descripcion']
+        if data.get('precio'):
+            producto.precio = data['precio']
+        if data.get('talla'):
+            producto.talla = data['talla']
+        if data.get('color'):
+            producto.color = data['color']
+        if data.get('categoria'):
+            producto.categoria = data['categoria']
+        if data.get('imagen_url'):
+            producto.imagen_url = data['imagen_url']
+        if 'stock' in data:
+            producto.stock = data['stock']
+        
+        db.session.commit()
+        return jsonify({'mensaje': 'Producto actualizado exitosamente'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/productos/<int:id>', methods=['DELETE'])
+@admin_requerido
+def admin_eliminar_producto(usuario_actual, id):
+    try:
+        producto = Producto.query.get_or_404(id)
+        db.session.delete(producto)
+        db.session.commit()
+        return jsonify({'mensaje': 'Producto eliminado exitosamente'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'ok'}), 200

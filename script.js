@@ -417,7 +417,7 @@ async function toggleFavorite(productId) {
         return;
     }
     
-    const isFavorite = favorites.some(f => f.producto.id === productId);
+    const isFavorite = favorites.some(f => f.producto_id === productId);
     
     try {
         if (isFavorite) {
@@ -655,8 +655,24 @@ async function processPayment(e) {
         return;
     }
     
-    // Crear pedido
+    // Sincronizar carrito con backend antes de crear pedido
     try {
+        // Primero sincronizar cada item del carrito local con el backend
+        for (const item of cart) {
+            await fetch(`${API_URL}/carrito`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    producto_id: item.id,
+                    cantidad: item.quantity
+                })
+            });
+        }
+        
+        // Crear pedido
         const response = await fetch(`${API_URL}/pedidos`, {
             method: 'POST',
             headers: {
@@ -683,8 +699,11 @@ async function processPayment(e) {
             setTimeout(() => {
                 alert(`✅ PEDIDO CONFIRMADO\n\nNúmero de Pedido: ${data.numero_pedido}\nTotal: ${data.total.toLocaleString()} COP\n\nGracias por tu compra en GLAM RENT!`);
             }, 500);
+        } else {
+            showNotification(data.mensaje || 'Error al crear el pedido', 'error');
         }
     } catch (error) {
+        console.error('Error:', error);
         showNotification('Error al procesar el pago', 'error');
     }
 }
@@ -706,19 +725,55 @@ function formatCardExpiry(e) {
 // ==================== ADMIN ====================
 
 async function loadAdminPanel() {
+    renderAdminTabs();
+    await loadAdminOrders();
+}
+
+function renderAdminTabs() {
+    const content = document.getElementById('adminContent');
+    content.innerHTML = `
+        <div class="admin-tabs">
+            <button class="admin-tab-btn active" onclick="loadAdminOrders()">Pedidos</button>
+            <button class="admin-tab-btn" onclick="loadAdminProducts()">Productos</button>
+        </div>
+        <div id="adminTabContent" class="admin-tab-content"></div>
+    `;
+}
+
+async function loadAdminOrders() {
     try {
+        // Activar tab
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-btn')[0].classList.add('active');
+        
         const response = await fetch(`${API_URL}/admin/pedidos`, {
             headers: { 'Authorization': `Bearer ${userToken}` }
         });
         const orders = await response.json();
         renderAdminOrders(orders);
     } catch (error) {
-        showNotification('Error al cargar panel admin', 'error');
+        showNotification('Error al cargar pedidos', 'error');
+    }
+}
+
+async function loadAdminProducts() {
+    try {
+        // Activar tab
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-btn')[1].classList.add('active');
+        
+        const response = await fetch(`${API_URL}/admin/productos`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        const products = await response.json();
+        renderAdminProducts(products);
+    } catch (error) {
+        showNotification('Error al cargar productos', 'error');
     }
 }
 
 function renderAdminOrders(orders) {
-    const content = document.getElementById('adminContent');
+    const content = document.getElementById('adminTabContent');
     
     if (orders.length === 0) {
         content.innerHTML = '<p class="empty-cart">No hay pedidos</p>';
@@ -780,6 +835,48 @@ function renderAdminOrders(orders) {
     content.innerHTML = html;
 }
 
+function renderAdminProducts(products) {
+    const content = document.getElementById('adminTabContent');
+    
+    let html = `
+        <div class="admin-products-header">
+            <h3>Gestión de Productos</h3>
+            <button class="login-btn" onclick="showAddProductForm()">Agregar Producto</button>
+        </div>
+        <div class="admin-products-grid">
+    `;
+    
+    products.forEach(product => {
+        html += `
+            <div class="admin-product-card">
+                <img src="${product.imagen_url}" alt="${product.nombre}" onerror="this.src='imagenes/logo.png'">
+                <div class="admin-product-info">
+                    <h4>${product.nombre}</h4>
+                    <p class="product-price">${product.precio.toLocaleString()} COP</p>
+                    <p class="product-category">${product.categoria} - ${product.color}</p>
+                    <div class="stock-control">
+                        <label>Stock:</label>
+                        <input type="number" value="${product.stock}" min="0" 
+                               onchange="updateProductStock(${product.id}, this.value)" 
+                               class="stock-input">
+                    </div>
+                    <div class="admin-product-actions">
+                        <button onclick="editProduct(${product.id})" class="edit-btn">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteProduct(${product.id})" class="delete-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    content.innerHTML = html;
+}
+
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_URL}/admin/pedidos/${orderId}/estado`, {
@@ -793,11 +890,162 @@ async function updateOrderStatus(orderId, newStatus) {
         
         if (response.ok) {
             showNotification('Estado actualizado', 'success');
-            loadAdminPanel();
+            loadAdminOrders();
         }
     } catch (error) {
         showNotification('Error al actualizar estado', 'error');
     }
+}
+
+async function updateProductStock(productId, newStock) {
+    try {
+        const response = await fetch(`${API_URL}/admin/productos/${productId}/stock`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({ stock: parseInt(newStock) })
+        });
+        
+        if (response.ok) {
+            showNotification('Stock actualizado', 'success');
+            // Recargar productos en la vista principal
+            loadProducts();
+        } else {
+            const data = await response.json();
+            showNotification(data.mensaje || 'Error al actualizar stock', 'error');
+        }
+    } catch (error) {
+        showNotification('Error al actualizar stock', 'error');
+    }
+}
+
+function showAddProductForm() {
+    const content = document.getElementById('adminTabContent');
+    content.innerHTML = `
+        <div class="admin-form-container">
+            <h3>Agregar Nuevo Producto</h3>
+            <form id="addProductForm" class="admin-product-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (COP)</label>
+                        <input type="number" id="productPrice" min="0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="productCategory" required>
+                            <option value="vestido">Vestido</option>
+                            <option value="corset">Corsé</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="text" id="productColor">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Talla</label>
+                        <input type="text" id="productSize">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="productStock" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="productDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>URL de Imagen</label>
+                    <input type="url" id="productImage">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="login-btn">Crear Producto</button>
+                    <button type="button" onclick="loadAdminProducts()" class="cancel-btn">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.getElementById('addProductForm').addEventListener('submit', createProduct);
+}
+
+async function createProduct(e) {
+    e.preventDefault();
+    
+    const productData = {
+        nombre: document.getElementById('productName').value,
+        precio: parseFloat(document.getElementById('productPrice').value),
+        categoria: document.getElementById('productCategory').value,
+        color: document.getElementById('productColor').value,
+        talla: document.getElementById('productSize').value,
+        stock: parseInt(document.getElementById('productStock').value),
+        descripcion: document.getElementById('productDescription').value,
+        imagen_url: document.getElementById('productImage').value
+    };
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/productos`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification('Producto creado exitosamente', 'success');
+            loadAdminProducts();
+            loadProducts(); // Recargar productos en la vista principal
+        } else {
+            showNotification(data.mensaje || 'Error al crear producto', 'error');
+        }
+    } catch (error) {
+        showNotification('Error al crear producto', 'error');
+    }
+}
+
+async function deleteProduct(productId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/productos/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+        
+        if (response.ok) {
+            showNotification('Producto eliminado', 'success');
+            loadAdminProducts();
+            loadProducts(); // Recargar productos en la vista principal
+        } else {
+            const data = await response.json();
+            showNotification(data.mensaje || 'Error al eliminar producto', 'error');
+        }
+    } catch (error) {
+        showNotification('Error al eliminar producto', 'error');
+    }
+}
+
+function editProduct(productId) {
+    // Esta función se puede implementar más tarde para editar productos existentes
+    showNotification('Función de edición en desarrollo', 'info');
 }
 
 // ==================== MODALES ====================
