@@ -1,0 +1,91 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                   🌟 GLAM RENT - GUÍA RÁPIDA 🌟                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+⚠️  IMPORTANTE: No abras index.html directamente haciendo doble clic
+   Eso NO funcionará porque necesitas un servidor corriendo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 FORMA FÁCIL DE INICIAR:
+
+   1. Haz doble clic en uno de estos archivos:
+      
+      • Windows: INICIAR_AQUI.bat
+      • Mac/Linux: INICIAR_AQUI.sh (o ejecuta en terminal)
+   
+   2. Espera a que se abra una ventana negra (terminal/consola)
+   
+   3. Verás un mensaje que dice:
+      "🌐 Abre tu navegador en: http://localhost:5000"
+   
+   4. Abre tu navegador (Chrome, Firefox, Edge, etc.)
+   
+   5. Escribe en la barra de direcciones:
+      http://localhost:5000
+   
+   6. ¡Listo! Verás la página de GLAM RENT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 CREDENCIALES DE ADMINISTRADOR:
+
+   Email: admin@glamrent.com
+   Contraseña: admin123
+
+   Después de iniciar sesión verás un botón "🔧 Admin"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛠️ SI NO FUNCIONA EL ARCHIVO .BAT O .SH:
+
+   Abre una terminal/consola manualmente:
+   
+   Windows (CMD):
+   1. Presiona Win + R
+   2. Escribe: cmd
+   3. Presiona Enter
+   4. Escribe: cd ruta\a\la\carpeta\del\proyecto
+   5. Escribe: python app.py
+   
+   Mac/Linux (Terminal):
+   1. Abre Terminal
+   2. Escribe: cd /ruta/a/la/carpeta/del/proyecto
+   3. Escribe: python3 app.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ PROBLEMAS COMUNES:
+
+   • "No aparecen productos"
+     → Verifica que estés en http://localhost:5000
+     → NO en file:///C:/Users/...
+   
+   • "No puedo iniciar sesión"
+     → Usa: admin@glamrent.com / admin123
+     → Verifica que el servidor esté corriendo
+   
+   • "Error de conexión"
+     → El servidor no está iniciado
+     → Ejecuta INICIAR_AQUI.bat/.sh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 VERIFICAR QUE TODO ESTÁ BIEN:
+
+   Ejecuta en terminal:
+   python diagnostico_completo.py
+   
+   Te dirá si hay algún problema.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 MÁS AYUDA:
+
+   • README.md - Documentación completa
+   • COMO_INICIAR.md - Guía detallada de inicio
+   • GUIA_PANEL_ADMIN.md - Guía del panel de admin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 ¡Disfruta de GLAM RENT!
