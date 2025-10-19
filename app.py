@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,8 +7,9 @@ import datetime
 from functools import wraps
 import random
 import string
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 app.config['SECRET_KEY'] = 'glam-rent-cartagena-2024-super-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tienda_vestidos.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -622,10 +623,20 @@ def admin_actualizar_stock(usuario_actual, id):
 def health_check():
     return jsonify({'status': 'ok'}), 200
 
+# Servir archivos estáticos
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('.', path)
+
 with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
     print("🚀 Servidor GLAM RENT iniciado")
     print("📦 Backend en http://localhost:5000")
+    print("🌐 Abre: http://localhost:5000")
     app.run(debug=True, port=5000)
