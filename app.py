@@ -628,9 +628,19 @@ def health_check():
 def index():
     return send_from_directory('.', 'index.html')
 
+@app.route('/imagenes/<path:filename>')
+def serve_images(filename):
+    return send_from_directory('imagenes', filename)
+
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('.', path)
+    # No servir rutas de API como archivos estáticos
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+    try:
+        return send_from_directory('.', path)
+    except:
+        return jsonify({'error': 'File not found'}), 404
 
 with app.app_context():
     db.create_all()
