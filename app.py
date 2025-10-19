@@ -577,6 +577,47 @@ def admin_actualizar_estado_pedido(usuario_actual, id):
         db.session.rollback()
         return jsonify({'mensaje': f'Error: {str(e)}'}), 500
 
+@app.route('/api/admin/productos', methods=['GET'])
+@admin_requerido
+def admin_obtener_productos(usuario_actual):
+    try:
+        productos = Producto.query.all()
+        resultado = [{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'precio': p.precio,
+            'talla': p.talla,
+            'color': p.color,
+            'categoria': p.categoria,
+            'imagen_url': p.imagen_url,
+            'stock': p.stock
+        } for p in productos]
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
+@app.route('/api/admin/productos/<int:id>/stock', methods=['PUT'])
+@admin_requerido
+def admin_actualizar_stock(usuario_actual, id):
+    try:
+        data = request.get_json()
+        producto = Producto.query.get_or_404(id)
+        nuevo_stock = data.get('stock')
+        
+        if nuevo_stock is None:
+            return jsonify({'mensaje': 'Stock requerido'}), 400
+        
+        if nuevo_stock < 0:
+            return jsonify({'mensaje': 'El stock no puede ser negativo'}), 400
+        
+        producto.stock = nuevo_stock
+        db.session.commit()
+        return jsonify({'mensaje': 'Stock actualizado', 'stock': producto.stock}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'mensaje': f'Error: {str(e)}'}), 500
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'ok'}), 200

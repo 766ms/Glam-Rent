@@ -417,7 +417,7 @@ async function toggleFavorite(productId) {
         return;
     }
     
-    const isFavorite = favorites.some(f => f.producto.id === productId);
+    const isFavorite = favorites.some(f => f.producto && f.producto.id === productId);
     
     try {
         if (isFavorite) {
@@ -427,8 +427,11 @@ async function toggleFavorite(productId) {
             });
             if (response.ok) {
                 showNotification('Eliminado de favoritos', 'success');
-                loadFavorites();
+                await loadFavorites();
                 loadProducts();
+            } else {
+                const data = await response.json();
+                showNotification(data.mensaje || 'Error al eliminar de favoritos', 'error');
             }
         } else {
             const response = await fetch(`${API_URL}/favoritos`, {
@@ -441,11 +444,15 @@ async function toggleFavorite(productId) {
             });
             if (response.ok) {
                 showNotification('Agregado a favoritos ❤️', 'success');
-                loadFavorites();
+                await loadFavorites();
                 loadProducts();
+            } else {
+                const data = await response.json();
+                showNotification(data.mensaje || 'Error al agregar a favoritos', 'error');
             }
         }
     } catch (error) {
+        console.error('Error en toggleFavorite:', error);
         showNotification('Error al actualizar favoritos', 'error');
     }
 }
@@ -612,7 +619,7 @@ function renderOrders(orders) {
 
 // ==================== PAGO ====================
 
-function initiateCheckout() {
+async function initiateCheckout() {
     if (cart.length === 0) {
         showNotification('Tu carrito está vacío', 'error');
         return;
@@ -625,11 +632,32 @@ function initiateCheckout() {
         return;
     }
     
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    document.getElementById('paymentTotal').textContent = `${total.toLocaleString()} COP`;
-    
-    closeAllModals();
-    openPaymentModal();
+    // Sincronizar carrito local con el backend
+    try {
+        showNotification('Preparando carrito...', 'success');
+        for (const item of cart) {
+            await fetch(`${API_URL}/carrito`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({
+                    producto_id: item.id,
+                    cantidad: item.quantity
+                })
+            });
+        }
+        
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        document.getElementById('paymentTotal').textContent = `${total.toLocaleString()} COP`;
+        
+        closeAllModals();
+        openPaymentModal();
+    } catch (error) {
+        console.error('Error sincronizando carrito:', error);
+        showNotification('Error al preparar el carrito', 'error');
+    }
 }
 
 async function processPayment(e) {
@@ -706,6 +734,36 @@ function formatCardExpiry(e) {
 // ==================== ADMIN ====================
 
 async function loadAdminPanel() {
+    // Setup tabs if not already done
+    const tabsContainer = document.getElementById('adminContent');
+    tabsContainer.innerHTML = `
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="orders" onclick="showAdminTab('orders')">Pedidos</button>
+            <button class="tab-btn" data-tab="products" onclick="showAdminTab('products')">Productos</button>
+        </div>
+        <div id="adminTabContent" class="admin-tab-content"></div>
+    `;
+    
+    showAdminTab('orders');
+}
+
+async function showAdminTab(tab) {
+    // Update active tab
+    document.querySelectorAll('.admin-tabs .tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.tab === tab) {
+            btn.classList.add('active');
+        }
+    });
+    
+    if (tab === 'orders') {
+        await loadAdminOrders();
+    } else if (tab === 'products') {
+        await loadAdminProducts();
+    }
+}
+
+async function loadAdminOrders() {
     try {
         const response = await fetch(`${API_URL}/admin/pedidos`, {
             headers: { 'Authorization': `Bearer ${userToken}` }
@@ -713,12 +771,24 @@ async function loadAdminPanel() {
         const orders = await response.json();
         renderAdminOrders(orders);
     } catch (error) {
-        showNotification('Error al cargar panel admin', 'error');
+        showNotification('Error al cargar pedidos', 'error');
+    }
+}
+
+async function loadAdminProducts() {
+    try {
+        const response = await fetch(`${API_URL}/admin/productos`, {
+            headers: { 'Authorization': `Bearer ${userToken}` }
+        });
+        const products = await response.json();
+        renderAdminProducts(products);
+    } catch (error) {
+        showNotification('Error al cargar productos', 'error');
     }
 }
 
 function renderAdminOrders(orders) {
-    const content = document.getElementById('adminContent');
+    const content = document.getElementById('adminTabContent');
     
     if (orders.length === 0) {
         content.innerHTML = '<p class="empty-cart">No hay pedidos</p>';
@@ -780,6 +850,91 @@ function renderAdminOrders(orders) {
     content.innerHTML = html;
 }
 
+function renderAdminProducts(products) {
+    const content = document.getElementById('adminTabContent');
+    
+    if (products.length === 0) {
+        content.innerHTML = '<p class="empty-cart">No hay productos</p>';
+        return;
+    }
+    
+    let html = `
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3>${products.length}</h3>
+                <p>Total Productos</p>
+            </div>
+            <div class="stat-card">
+                <h3>${products.reduce((sum, p) => sum + p.stock, 0)}</h3>
+                <p>Stock Total</p>
+            </div>
+            <div class="stat-card">
+                <h3>${products.filter(p => p.stock <= 2).length}</h3>
+                <p>Bajo Stock</p>
+            </div>
+        </div>
+        <div class="products-admin-list">
+    `;
+    
+    products.forEach(product => {
+        const stockClass = product.stock === 0 ? 'stock-empty' : (product.stock <= 2 ? 'stock-low' : 'stock-ok');
+        html += `
+            <div class="admin-product-card">
+                <img src="${product.imagen_url}" alt="${product.nombre}">
+                <div class="product-info">
+                    <h3>${product.nombre}</h3>
+                    <p>${product.descripcion}</p>
+                    <p><strong>Precio:</strong> ${product.precio.toLocaleString()} COP</p>
+                    <p><strong>Talla:</strong> ${product.talla} | <strong>Color:</strong> ${product.color}</p>
+                    <p><strong>Categoría:</strong> ${product.categoria}</p>
+                </div>
+                <div class="stock-control">
+                    <label class="${stockClass}">Stock actual: ${product.stock}</label>
+                    <div class="stock-input-group">
+                        <input type="number" id="stock-${product.id}" value="${product.stock}" min="0" class="stock-input">
+                        <button onclick="updateProductStock(${product.id})" class="update-stock-btn">Actualizar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    content.innerHTML = html;
+}
+
+async function updateProductStock(productId) {
+    const newStock = document.getElementById(`stock-${productId}`).value;
+    
+    if (newStock === '' || newStock < 0) {
+        showNotification('Stock inválido', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/productos/${productId}/stock`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({ stock: parseInt(newStock) })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showNotification('Stock actualizado exitosamente', 'success');
+            loadAdminProducts();
+        } else {
+            showNotification(data.mensaje || 'Error al actualizar stock', 'error');
+        }
+    } catch (error) {
+        console.error('Error actualizando stock:', error);
+        showNotification('Error al actualizar stock', 'error');
+    }
+}
+
 async function updateOrderStatus(orderId, newStatus) {
     try {
         const response = await fetch(`${API_URL}/admin/pedidos/${orderId}/estado`, {
@@ -793,9 +948,13 @@ async function updateOrderStatus(orderId, newStatus) {
         
         if (response.ok) {
             showNotification('Estado actualizado', 'success');
-            loadAdminPanel();
+            loadAdminOrders();
+        } else {
+            const data = await response.json();
+            showNotification(data.mensaje || 'Error al actualizar estado', 'error');
         }
     } catch (error) {
+        console.error('Error actualizando estado:', error);
         showNotification('Error al actualizar estado', 'error');
     }
 }
