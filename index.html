@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLAM RENT - Alquiler de Vestidos de Gala</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="imagenes/logo.png" alt="GLAM RENT" class="logo">
+                <span class="brand-text">GLAM RENT</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#inicio" class="nav-link">Inicio</a>
+                <a href="#quienes-somos" class="nav-link">Quiénes Somos</a>
+                <a href="#" class="nav-link" id="profileBtn" style="display: none;"><i class="fas fa-user"></i></a>
+                <a href="#" class="nav-link" id="favoritesBtn" style="display: none;"><i class="fas fa-heart"></i> <span id="favCount" class="cart-count">0</span></a>
+                <a href="#" class="nav-link" id="adminBtn" style="display: none;"><i class="fas fa-tools"></i> Admin</a>
+                <a href="#" class="nav-link" id="loginBtn">Login</a>
+                <a href="#" class="nav-link" id="searchBtn"><i class="fas fa-search"></i></a>
+                <a href="#" class="nav-link" id="cartBtn"><i class="fas fa-shopping-cart"></i> <span id="cartCount" class="cart-count">0</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1 class="hero-title">¡NUEVA COLECCIÓN DE VERANO DISPONIBLE YA!</h1>
+            <p class="hero-description">
+                ¡Descubre la magia de la moda con nuestra nueva colección de vestidos! ✨ 
+                Aprovecha un exclusivo 15% de descuento solo por tiempo limitado y luce 
+                espectacular en cualquier ocasión!
+            </p>
+            
+            <!-- Filtros -->
+            <div class="filters-container">
+                <select id="filterCategory" class="filter-select">
+                    <option value="">Todas las Categorías</option>
+                    <option value="vestido">Vestidos</option>
+                    <option value="corset">Corsés</option>
+                </select>
+                <select id="filterColor" class="filter-select">
+                    <option value="">Todos los Colores</option>
+                    <option value="Rosa">Rosa</option>
+                    <option value="Blanco">Blanco</option>
+                    <option value="Azul">Azul</option>
+                    <option value="Rojo">Rojo</option>
+                    <option value="Verde">Verde</option>
+                    <option value="Perla">Perla</option>
+                </select>
+                <select id="filterPrice" class="filter-select">
+                    <option value="">Ordenar por Precio</option>
+                    <option value="precio_asc">Menor a Mayor</option>
+                    <option value="precio_desc">Mayor a Menor</option>
+                </select>
+                <button id="applyFilters" class="filter-btn">Aplicar Filtros</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Destacados -->
+    <section class="featured-products">
+        <div class="container">
+            <h2 class="section-title">TODOS LOS PRODUCTOS:</h2>
+            <div class="products-grid" id="productsGrid">
+                <!-- Los productos se cargarán dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Quiénes Somos -->
+    <section class="about-section" id="quienes-somos">
+        <div class="about-overlay">
+            <div class="container">
+                <div class="about-content">
+                    <h2 class="section-title">QUIÉNES SOMOS</h2>
+                    <p class="about-text">
+                        <strong>Glam Rent</strong> es una empresa cartagenera dedicada al alquiler de vestidos de gala 
+                        y corsés de alta calidad. Nuestros diseños son 100% colombianos, elaborados con 
+                        materiales premium y atención al detalle.
+                    </p>
+                    
+                    <!-- Redes Sociales -->
+                    <div class="social-media">
+                        <h3 class="social-title">Síguenos en nuestras redes</h3>
+                        <div class="social-links">
+                            <a href="https://github.com/766ms" target="_blank" class="social-link">
+                                <i class="fab fa-github"></i>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="https://discord.com/users/756193168965369958" target="_blank" class="social-link">
+                                <i class="fab fa-discord"></i>
+                                <span>Discord</span>
+                            </a>
+                            <a href="https://x.com/766ms_" target="_blank" class="social-link">
+                                <i class="fab fa-twitter"></i>
+                                <span>Twitter</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Diseños Colombianos -->
+    <section class="colombian-section">
+        <div class="container">
+            <div class="colombian-content">
+                <div class="map-container">
+                    <img src="imagenes/mapa-colombia.jpg" alt="Mapa de Colombia">
+                </div>
+                <div class="colombian-text">
+                    <h2>DISEÑOS 100% COLOMBIANOS</h2>
+                    <p>Nuestros diseños, son fabricados desde Cartagena, Colombia con materiales de alta calidad y 100% premium.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Contacto / Newsletter -->
+    <section class="contact-section">
+        <div class="container">
+            <h2 class="section-title">CONTÁCTANOS</h2>
+            <p class="contact-description">
+                Envíanos un mensaje y uno de nuestros asesores te atenderá,<br>
+                brindamos atención 100% online.
+            </p>
+            <form class="contact-form" id="contactForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter a valid email address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your Name" required>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">SUBMIT</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <img src="imagenes/logo.png" alt="GLAM RENT" class="footer-logo">
+        </div>
+    </footer>
+
+    <!-- Modal de Login/Register -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">INICIAR SESIÓN</h2>
+            <form class="login-form" id="authForm">
+                <div class="form-group" id="nameGroup" style="display: none;">
+                    <label for="registerName">Nombre</label>
+                    <input type="text" id="registerName" name="registerName">
+                </div>
+                <div class="form-group">
+                    <label for="username">Email</label>
+                    <input type="email" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="login-btn" id="authSubmitBtn">Ingresar</button>
+                <p class="register-link" id="switchAuthMode">¿No tienes una cuenta? <a href="#">Regístrate aquí</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Búsqueda -->
+    <div id="searchModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeSearch">&times;</span>
+            <h2>BUSCAR PRODUCTOS</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar vestidos, corsés, colores...">
+                <button id="searchButton" class="login-btn">Buscar</button>
+            </div>
+            <div id="searchResults" class="search-results-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Carrito -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content cart-modal-content">
+            <span class="close" id="closeCart">&times;</span>
+            <h2>MI CARRITO</h2>
+            <div id="cartItems" class="cart-items-container"></div>
+            <div class="cart-total">
+                <h3>Total: <span id="cartTotal">$0 COP</span></h3>
+                <button class="login-btn" id="checkoutBtn">Proceder al Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Favoritos -->
+    <div id="favoritesModal" class="modal">
+        <div class="modal-content cart-modal-content">
+            <span class="close" id="closeFavorites">&times;</span>
+            <h2>MIS FAVORITOS ❤️</h2>
+            <div id="favoritesItems" class="cart-items-container"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Perfil -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content cart-modal-content">
+            <span class="close" id="closeProfile">&times;</span>
+            <h2>MI PERFIL</h2>
+            <div class="profile-tabs">
+                <button class="tab-btn active" data-tab="info">Información</button>
+                <button class="tab-btn" data-tab="orders">Mis Pedidos</button>
+            </div>
+            <div id="profileContent" class="profile-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Pago -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closePayment">&times;</span>
+            <h2>PROCESAR PAGO 💳</h2>
+            <form id="paymentForm" class="payment-form">
+                <div class="form-group">
+                    <label>Número de Tarjeta</label>
+                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Exp.</label>
+                        <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CVV</label>
+                        <input type="text" id="cardCVV" placeholder="123" maxlength="4" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nombre en la Tarjeta</label>
+                    <input type="text" id="cardName" placeholder="NOMBRE APELLIDO" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección de Envío</label>
+                    <textarea id="shippingAddress" placeholder="Ingresa tu dirección completa" required></textarea>
+                </div>
+                <div class="payment-total">
+                    <h3>Total a Pagar: <span id="paymentTotal">$0 COP</span></h3>
+                </div>
+                <button type="submit" class="login-btn">Confirmar Pago</button>
+                <div class="test-cards-info">
+                    <p><strong>🧪 Tarjetas de Prueba:</strong></p>
+                    <p>✅ Exitosa: 4242 4242 4242 4242</p>
+                    <p>❌ Rechazada: 4000 0000 0000 0002</p>
+                    <p>CVV: cualquier 3 dígitos | Exp: cualquier fecha futura</p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Admin -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content admin-modal-content">
+            <span class="close" id="closeAdmin">&times;</span>
+            <h2>PANEL DE ADMINISTRACIÓN</h2>
+            <div id="adminContent" class="admin-content"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
